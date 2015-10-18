@@ -1,6 +1,8 @@
 #TRANSMITTER
 ###Main thread
-1. Mengirim data dalam bentuk frame
+1. Baca file text, masukkan ke dalam memori.
+2. Buat array of frame, isikan datanya dari file text tadi.
+3. Mengirim data dalam bentuk frame sebanyak lebar window
 
 ###Second thread
 1. Menerima ACK.
@@ -19,12 +21,13 @@
 ```
 loop
     for i = 1 to bufSize
-        jika buf ke i tidak kosong
+        if buf ke i tidak kosong
             baca buf ke i
             lakukan checksum
             if checksum sesuai
                 kirim ACK
             else
                 kirim NAK
+            kosongkan buf ke i
 end loop
 ```
