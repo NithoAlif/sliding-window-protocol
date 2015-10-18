@@ -23,6 +23,7 @@
 /* Const */
 #define BYTESIZE 256 /* The maximum value of a byte */
 #define MAXLEN 1024 /* Maximum messages length */
+#define DATASIZE 16
 
 typedef unsigned char Byte;
 typedef struct QTYPE {
