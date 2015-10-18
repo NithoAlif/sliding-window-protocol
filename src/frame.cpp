@@ -1,9 +1,23 @@
 #include <iostream>
+#include <cstring>
+#include "dcomm.h"
 using namespace std;
 
 class frame{
 public:
-	frame();
+	frame() : soh(SOH), stx(STX), etx(ETX) {
+		frameNumber = 0;
+		string s = "";
+		strcpy(data, s.c_str());
+		// setChecksum();
+	}
+
+	frame(int i, string s) : soh(SOH), stx(STX), etx(ETX) {
+		frameNumber = i;
+		strcpy(data, s.c_str());
+		// setChecksum();
+	}
+
 	~frame();
 
 	void setSOH(char c){
@@ -15,8 +29,8 @@ public:
 	void setSTX(char c){
 		stx = c;
 	}
-	void setData(char c){
-		data = c;
+	void setData(string c){
+		
 	}
 	void setETX(char c){
 		etx = c;
@@ -29,18 +43,18 @@ public:
 		return soh;
 	}
 	int getFrameNumber(){
-		return i;
+		return frameNumber;
 	}
 	char getSTX(){
 		return stx;
 	}
-	char getData(){
+	char* getData(){
 		return data;
 	}
 	char getETX(){
 		return etx;
 	}
-	char getChecksum(){
+	string getChecksum(){
 		return checksum;
 	}
 
@@ -48,7 +62,7 @@ private:
 	char soh;
 	int frameNumber;
 	char stx;
-	char data;
+	char data[DATASIZE];
 	char etx;
 	string checksum;
 
