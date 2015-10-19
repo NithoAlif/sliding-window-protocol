@@ -8,6 +8,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "frame.cpp"
+
 using namespace std;
 
 int main() {
@@ -44,8 +46,21 @@ int main() {
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
-    // Everything is configured and ready to send the message
 
-    close(s);
+    // Everything is configured and ready to send the message
+    char str[16] = "haloooo";
+    frame f(1, str);
+
+    // Copy serialized data from frame
+    char result[DATASIZE + 15];
+    for (int i = 0; i < DATASIZE + 15; i++) {
+        result[i] = f.getResult()[i];
+    }
+    
+    printf("Sending packet..."); 
+    if (sendto(s, result, 32, 0, (struct sockaddr *)&remaddr, slen)==-1) {
+        perror("sendto");
+        exit(1);
+    }
     return 0;
 }

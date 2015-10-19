@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdio>
 #include <cstring>
 
 #include "dcomm.h"
@@ -32,6 +33,9 @@ public:
 			result[7 + DATASIZE + i] = checksum[i];
 		}
 
+		for (int i = 0; i < DATASIZE; i++) {
+			result[6 + i] = data[i];
+		}
 	}
 
 	frame (char source[DATASIZE+15]) {
@@ -45,12 +49,16 @@ public:
 		}
 
 		frameNumber = *(int *)tmp;
+
+		for (int i = 0; i < DATASIZE; i++) {
+			data[i] = source[6 + i];
+		}
+
 		strcpy(result, source);
+
 	}
 
 	~frame(){
-		delete [] data;
-		delete [] result;
 	}
 
 	void setSOH(char c) {
@@ -89,6 +97,10 @@ public:
 	}
 	string getChecksum() {
 		return checksum;
+	}
+
+	char* getResult() {
+		return result;
 	}
 
 private:
