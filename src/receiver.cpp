@@ -10,6 +10,7 @@
 
 #include "dcomm.h"
 #include "frame.cpp"
+#include "crc32.h"
 using namespace std;
 
 
@@ -41,19 +42,27 @@ void consumeMessage(){
 		j++;
 		for (int i = 0; i < RXQSIZE; i++) {
 			if (frame_buffer[i].getFrameNumber() != -1){
-				
-				cout << "consume nih!" << endl;
-				cout << frame_buffer[i].getData() << endl;
-		
-				char buf[10];
-				sprintf(buf, "ack %d", i);
-				if (sendto(s, buf, sizeof(buf), 0, (struct sockaddr *)&remaddr, addrlen)==-1) {
-				    perror("sendto");
-				    exit(1);
+				CRC32 crc32;
+				string tmp;
+				for(int j = 0; j < DATASIZE + 6; j++) {
+					tmp.push_back(frame_buffer[i].getResult()[j]);
 				}
+				cout << crc32(tmp) << endl;
+				if (1) {
+					cout << "consume nih!" << endl;
+					cout << frame_buffer[i].getData() << endl;
+					
+					int frameNumber = frame_buffer[i].getFrameNumber();
+					char buf[10];
+					sprintf(buf, "%d", frameNumber);
+					if (sendto(s, buf, sizeof(buf), 0, (struct sockaddr *)&remaddr, addrlen)==-1) {
+					    perror("sendto");
+					    exit(1);
+					}
 
-				// usleep(50);
-				frame_buffer[i].empty();
+					usleep(50);
+					frame_buffer[i].empty();
+				}
 			}
 		}
 	}

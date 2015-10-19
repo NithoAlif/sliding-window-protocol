@@ -3,21 +3,23 @@
 #include <cstring>
 
 #include "dcomm.h"
+#include "crc32.h"
+
 using namespace std;
 
-class frame{
+class frame {
 public:
 	
 	frame() : soh(SOH), stx(STX), etx(ETX) {
 		frameNumber = -1;
 		data[0] = '\0';
-		// setChecksum();
+		//setChecksum();
 	}
 
 	frame(int i, char s[DATASIZE]) : soh(SOH), stx(STX), etx(ETX) {
 		frameNumber = i;
 		strcpy(data, s);
-		// setChecksum();
+		
 
 		// Serialize frame to array of char
 		result[0] = soh;
@@ -29,13 +31,22 @@ public:
 		result[3] = (i >> 16) & 0xFF;
 		result[4] = (i >> 24) & 0xFF;
 
+		for (int i = 0; i < DATASIZE; i++) {
+			result[6 + i] = data[i];
+		}
+
+		string tmp;
+		for (int i = 0; i < DATASIZE+6; i++) {
+			tmp.push_back(result[i]);
+		}
+
+		setChecksum(tmp);
+
 		for (int i = 0; i < 8; i++) {
 			result[7 + DATASIZE + i] = checksum[i];
 		}
 
-		for (int i = 0; i < DATASIZE; i++) {
-			result[6 + i] = data[i];
-		}
+
 	}
 
 	frame (char source[DATASIZE+15]) {
@@ -82,7 +93,8 @@ public:
 		etx = c;
 	}
 	void setChecksum(string s) {
-		checksum = s;
+		CRC32 crc32;
+		checksum = crc32(s);
 	}
 
 	char getSOH() {

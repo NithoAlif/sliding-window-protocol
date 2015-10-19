@@ -1,7 +1,7 @@
 #TRANSMITTER
 ###Main thread
-1. Baca file text, masukkan ke dalam memori.
-2. Buat array of frame, isikan datanya dari file text tadi.
+1. Baca file text, masukkan ke dalam memori. DONE
+2. Buat array of frame, isikan datanya dari file text tadi. DONE
 3. Mengirim data dalam bentuk frame sebanyak lebar window
 
 ###Second thread
