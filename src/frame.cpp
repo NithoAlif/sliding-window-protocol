@@ -1,30 +1,27 @@
-#include <iostream>
+#include <cstring>
 #include "dcomm.h"
 using namespace std;
 
 class frame{
 public:
-	frame() : soh(SOH), stx(STX), etx(ETX){
+	
+	frame() : soh(SOH), stx(STX), etx(ETX) {
 		frameNumber = 0;
-		data = "";
-		setChecksum();
+		string s = "";
+		strcpy(data, s.c_str());
+		// setChecksum();
 	}
-	
-	frame(int i, string s) : soh(SOH), stx(STX), etx(ETX){
+
+	frame(int i, string s) : soh(SOH), stx(STX), etx(ETX) {
 		frameNumber = i;
-		data = s;
-		setChecksum();
+		strcpy(data, s.c_str());
+		// setChecksum();
 	}
-	
-	frame (char a[32]){
-		soh = a[1];
+
+	frame (char a[DATASIZE+15]){
 		
-		char tmp[4];
-		for (int i = 0; i < 4; ++i){
-			tmp[i] = a[2+i];
-		}
-		frameNumber = atoi(tmp);
 	}
+
 
 	~frame(){
 
@@ -39,8 +36,8 @@ public:
 	void setSTX(char c){
 		stx = c;
 	}
-	void setData(string s){
-		data = s;
+	void setData(string c){
+		
 	}
 	void setETX(char c){
 		etx = c;
@@ -58,7 +55,7 @@ public:
 	char getSTX(){
 		return stx;
 	}
-	string getData(){
+	char* getData(){
 		return data;
 	}
 	char getETX(){
@@ -72,7 +69,7 @@ private:
 	char soh;
 	int frameNumber;
 	char stx;
-	string data;
+	char data[DATASIZE];
 	char etx;
 	string checksum;
 	char result[32];
