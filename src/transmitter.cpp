@@ -34,6 +34,7 @@ void openFile(string filename) {
     memset(tmp_char, 0, sizeof(tmp_char));
 
     while (fin.get(current)) {
+        cout << current;
         charCounts++;
         tmp_char[(charCounts-1) % (DATASIZE - 1)] = current; 
         
@@ -52,15 +53,29 @@ void openFile(string filename) {
     }
 }
 
+void sendMessage() {
+    openFile("/home/husni/Desktop/SlidingWindow/sliding-window-protocol/bin/file.txt");
+
+    // Send message 
+    for (int i = 0; i < frame_vector.size(); i++) {
+        char result[DATASIZE + 15];
+        for (int j = 0; j < DATASIZE + 15; j++) {
+            result[j] = frame_vector[i].getResult()[j];
+        }
+
+        printf("Sending frame %d\n", i); 
+        if (sendto(s, result, 32, 0, (struct sockaddr *)&remaddr, slen)==-1) {
+            perror("sendto");
+            exit(1);
+        }
+    }
+}
+
 void receiveSignal(){
     for(;;){
-        char c;
-        int recvlen = recvfrom(s, &c, 1, 0, (struct sockaddr *)&remaddr, &slen);
-        if (c == ACK){
-            cout << "ACK DITERIMA!!";
-        } else{
-            cout << "NAK DITERIMA!!";
-        }
+        char c[10];
+        int recvlen = recvfrom(s, c, 10, 0, (struct sockaddr *)&remaddr, &slen);
+        cout << c << endl;
     }
 }
 
@@ -95,22 +110,9 @@ int main() {
     }
 
     // Everything is configured and ready to send the message
-    openFile("/home/nithoalif/dev/sliding-window-protocol/bin/file.txt");
-
-    // Send message 
-    for (int i = 0; i < frame_vector.size(); i++) {
-        char result[DATASIZE + 15];
-        for (int j = 0; j < DATASIZE + 15; j++) {
-            result[j] = frame_vector[i].getResult()[j];
-        }
-
-        printf("Sending pacccket..."); 
-        if (sendto(s, result, 32, 0, (struct sockaddr *)&remaddr, slen)==-1) {
-            perror("sendto");
-            exit(1);
-        }
-    }
+    thread sendMessageThread(sendMessage);
     thread receiveThread(receiveSignal);
+    sendMessageThread.join();
     receiveThread.join();
 
     return 0;

@@ -30,35 +30,30 @@ void receiveMessage(){
 			
 			frame f(sent_frame);
 			frame_buffer[f.getFrameNumber() % WINDOWSIZE] = f;
-
 		}
-
-		
 		
 	}
 }
 
 void consumeMessage(){
+	int j = 0;
 	for (;;){
+		j++;
 		for (int i = 0; i < RXQSIZE; i++) {
-			
 			if (frame_buffer[i].getFrameNumber() != -1){
-				//if (frame_buffer[i].getChecksum() == "lol"){
-					cout << "consume nih!" << endl;
-					cout << frame_buffer[i].getData() << endl;
-			
-					char c = NAK;
-					//sendto(s, &c, 1, 0, (struct sockaddr *)&remaddr, addrlen);
+				
+				cout << "consume nih!" << endl;
+				cout << frame_buffer[i].getData() << endl;
 		
-					if (sendto(s, &c, 1, 0, (struct sockaddr *)&remaddr, addrlen)==-1) {
-					    perror("sendto");
-					    exit(1);
-					}
-					sleep(3);
-					frame_buffer[i].empty();
-					cout << frame_buffer[i].getFrameNumber() << endl;
-					
-				//} 
+				char buf[10];
+				sprintf(buf, "ack %d", i);
+				if (sendto(s, buf, sizeof(buf), 0, (struct sockaddr *)&remaddr, addrlen)==-1) {
+				    perror("sendto");
+				    exit(1);
+				}
+
+				// usleep(50);
+				frame_buffer[i].empty();
 			}
 		}
 	}
