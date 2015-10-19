@@ -1,4 +1,6 @@
+#include <iostream>
 #include <cstring>
+
 #include "dcomm.h"
 using namespace std;
 
@@ -6,62 +8,86 @@ class frame{
 public:
 	
 	frame() : soh(SOH), stx(STX), etx(ETX) {
-		frameNumber = 0;
-		string s = "";
-		strcpy(data, s.c_str());
+		frameNumber = -1;
+		data[0] = '\0';
 		// setChecksum();
 	}
 
-	frame(int i, string s) : soh(SOH), stx(STX), etx(ETX) {
+	frame(int i, char s[DATASIZE]) : soh(SOH), stx(STX), etx(ETX) {
 		frameNumber = i;
-		strcpy(data, s.c_str());
+		strcpy(data, s);
 		// setChecksum();
+
+		// Serialize frame to array of char
+		result[0] = soh;
+		result[5] = stx;
+		result[6 + DATASIZE] = etx;
+
+		result[1] = i & 0xFF;
+		result[2] = (i >> 8) & 0xFF;
+		result[3] = (i >> 16) & 0xFF;
+		result[4] = (i >> 24) & 0xFF;
+
+		for (int i = 0; i < 8; i++) {
+			result[7 + DATASIZE + i] = checksum[i];
+		}
+
 	}
 
-	frame (char a[DATASIZE+15]){
-		
-	}
+	frame (char source[DATASIZE+15]) {
+		soh = source[0];
+		stx = source[5];
+		etx = source[6 + DATASIZE];
 
+		char tmp[sizeof(int)];
+		for (int i = 0; i < sizeof(int); i++) {
+			tmp[i] = source[i+1];
+		}
+
+		frameNumber = *(int *)tmp;
+		strcpy(result, source);
+	}
 
 	~frame(){
-
+		delete [] data;
+		delete [] result;
 	}
 
-	void setSOH(char c){
+	void setSOH(char c) {
 		soh = c;
 	}
-	void setFrameNumber(int i){
+	void setFrameNumber(int i) {
 		frameNumber = i;
 	}
-	void setSTX(char c){
+	void setSTX(char c)  {
 		stx = c;
 	}
-	void setData(string c){
+	void setData(string c) {
 		
 	}
-	void setETX(char c){
+	void setETX(char c) {
 		etx = c;
 	}
-	void setChecksum(){
-		//checksum = s;
+	void setChecksum(string s) {
+		checksum = s;
 	}
 
-	char getSOH(){
+	char getSOH() {
 		return soh;
 	}
-	int getFrameNumber(){
+	int getFrameNumber() {
 		return frameNumber;
 	}
-	char getSTX(){
+	char getSTX() {
 		return stx;
 	}
-	char* getData(){
+	char* getData() {
 		return data;
 	}
-	char getETX(){
+	char getETX() {
 		return etx;
 	}
-	string getChecksum(){
+	string getChecksum() {
 		return checksum;
 	}
 
@@ -72,5 +98,5 @@ private:
 	char data[DATASIZE];
 	char etx;
 	string checksum;
-	char result[32];
+	char result[DATASIZE + 15];
 };
