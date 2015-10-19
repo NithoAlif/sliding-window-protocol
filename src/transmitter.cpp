@@ -1,5 +1,8 @@
 #include <iostream>
-#include <string>
+#include <fstream>
+#include <vector>
+#include <thread>
+#include <cstring>
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
@@ -12,12 +15,56 @@
 
 using namespace std;
 
+struct sockaddr_in myaddr;
+struct sockaddr_in remaddr;
+socklen_t slen = sizeof(remaddr);
+vector<frame> frame_vector;
+string server = "127.0.0.1";
+int s;
+
+void openFile(string filename) {
+    ifstream fin;
+    fin.open(filename.c_str(), ios::in);
+
+    int charCounts = 0;
+    int frameNumber = 0;
+    
+    char current;
+    char tmp_char[DATASIZE];
+    memset(tmp_char, 0, sizeof(tmp_char));
+
+    while (fin.get(current)) {
+        charCounts++;
+        tmp_char[(charCounts-1) % (DATASIZE - 1)] = current; 
+        
+        if (charCounts % (DATASIZE - 1) == 0) {
+            frame f(frameNumber, tmp_char);
+            frame_vector.push_back(f);
+            frameNumber++;
+
+            memset(tmp_char, 0, sizeof(tmp_char));
+        }
+    }
+    
+    if (charCounts % (DATASIZE - 1) != 0) {
+        frame f(frameNumber, tmp_char);
+        frame_vector.push_back(f);
+    }
+}
+
+void receiveSignal(){
+    for(;;){
+        char c;
+        int recvlen = recvfrom(s, &c, 1, 0, (struct sockaddr *)&remaddr, &slen);
+        if (c == ACK){
+            cout << "ACK DITERIMA!!";
+        } else{
+            cout << "NAK DITERIMA!!";
+        }
+    }
+}
+
 int main() {
-    struct sockaddr_in myaddr;
-    struct sockaddr_in remaddr;
-    socklen_t slen = sizeof(remaddr);
-    int s;
-    string server = "127.0.0.1";
     
     // Create UDP socket
     if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -48,19 +95,23 @@ int main() {
     }
 
     // Everything is configured and ready to send the message
-    char str[16] = "haloooo";
-    frame f(1, str);
+    openFile("/home/nithoalif/dev/sliding-window-protocol/bin/file.txt");
 
-    // Copy serialized data from frame
-    char result[DATASIZE + 15];
-    for (int i = 0; i < DATASIZE + 15; i++) {
-        result[i] = f.getResult()[i];
+    // Send message 
+    for (int i = 0; i < frame_vector.size(); i++) {
+        char result[DATASIZE + 15];
+        for (int j = 0; j < DATASIZE + 15; j++) {
+            result[j] = frame_vector[i].getResult()[j];
+        }
+
+        printf("Sending pacccket..."); 
+        if (sendto(s, result, 32, 0, (struct sockaddr *)&remaddr, slen)==-1) {
+            perror("sendto");
+            exit(1);
+        }
     }
-    
-    printf("Sending packet..."); 
-    if (sendto(s, result, 32, 0, (struct sockaddr *)&remaddr, slen)==-1) {
-        perror("sendto");
-        exit(1);
-    }
+    thread receiveThread(receiveSignal);
+    receiveThread.join();
+
     return 0;
 }

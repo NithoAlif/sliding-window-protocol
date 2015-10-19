@@ -23,7 +23,9 @@
 /* Const */
 #define BYTESIZE 256 /* The maximum value of a byte */
 #define MAXLEN 1024 /* Maximum messages length */
-#define DATASIZE 16
+#define DATASIZE 16 /* Maximum data length */
+#define RXQSIZE 8 /* Define receive buffer size */
+#define WINDOWSIZE 5 /* Define window size */
 
 typedef unsigned char Byte;
 typedef struct QTYPE {

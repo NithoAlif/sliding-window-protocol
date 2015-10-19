@@ -61,6 +61,11 @@ public:
 	~frame(){
 	}
 
+	void empty() {
+		frameNumber = -1;
+	}
+	
+
 	void setSOH(char c) {
 		soh = c;
 	}
