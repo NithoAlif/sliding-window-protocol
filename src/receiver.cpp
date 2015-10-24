@@ -37,18 +37,13 @@ void receiveMessage(){
 }
 
 void consumeMessage(){
-	int j = 0;
 	for (;;){
-		j++;
 		for (int i = 0; i < RXQSIZE; i++) {
-			if (frame_buffer[i].getFrameNumber() != -1){
-				
-				CRC32 crc32;
-				string tmp;
-
+			if (frame_buffer[i].getFrameNumber() != -1) { // jika frame buffer tidak kosong
 				if (1) { // jika checksum sama
+
+					// kirim ACK
 					cout << frame_buffer[i].getData() << endl;
-					
 					int frameNumber = frame_buffer[i].getFrameNumber();
 					char buf[10];
 					sprintf(buf, "%d", frameNumber);
@@ -57,9 +52,13 @@ void consumeMessage(){
 					    exit(1);
 					}
 
-					usleep(50);
-					frame_buffer[i].empty();
+				} else { // checksum tidak sama
+					// kirim NAK
 				}
+
+				// Hapus frame yang sudah diproses
+				usleep(50);
+				frame_buffer[i].empty();
 			}
 		}
 	}
