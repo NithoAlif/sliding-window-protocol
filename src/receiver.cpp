@@ -28,7 +28,6 @@ void receiveMessage(){
 	for (;;) {
 		int recvlen = recvfrom(s, sent_frame, sizeof(sent_frame), 0, (struct sockaddr *)&remaddr, &addrlen);
 		if (recvlen > 0) {
-			
 			frame f(sent_frame);
 			frame_buffer[f.getFrameNumber() % WINDOWSIZE] = f;
 		}
@@ -40,10 +39,17 @@ void consumeMessage(){
 	for (;;){
 		for (int i = 0; i < RXQSIZE; i++) {
 			if (frame_buffer[i].getFrameNumber() != -1) { // jika frame buffer tidak kosong
-				if (1) { // jika checksum sama
+				
+				CRC32 crc32;
+				string checksum_tmp;
+				for (int j = 0; j < DATASIZE + 6; j++) {
+					checksum_tmp.push_back(frame_buffer[i].getResult()[j]);
+				}
+				
+				cout << "received checksum: " << crc32(checksum_tmp) << endl;
+				cout << "real checksum: " << frame_buffer[i].getChecksum() << endl;
 
-					// kirim ACK
-					cout << frame_buffer[i].getData() << endl;
+				if (1) { // jika checksum sama
 					int frameNumber = frame_buffer[i].getFrameNumber();
 					char buf[10];
 					sprintf(buf, "%d", frameNumber);
@@ -64,10 +70,11 @@ void consumeMessage(){
 	}
 }
 
-
-#define BUFSIZE 32
-
 int main(int argc, char const *argv[]) {
+	if (argc < 2) {
+		cout << "Usage: receiver <port>" << endl;
+		return 0;
+	}
 
 	// Create UDP socket
 	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -85,10 +92,12 @@ int main(int argc, char const *argv[]) {
 		perror("bind failed");
 		return 0;
 	}
+
+	// Everything is configured and ready to receive message
 	thread receive_t(receiveMessage);
 	thread consume_t(consumeMessage);
 	consume_t.join();
 	receive_t.join();
-	// Everything is configured and ready to receive message
-	
+
+	return 0;
 }

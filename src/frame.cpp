@@ -47,7 +47,7 @@ public:
 		setChecksum(tmp);
 
 		// Serialize checksum
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < CHECKSUMSIZE; i++) {
 			result[7 + DATASIZE + i] = checksum[i];
 		}
 
@@ -62,7 +62,7 @@ public:
 		// Set frameNumber
 		char tmp[sizeof(int)];
 		for (int i = 0; i < sizeof(int); i++) {
-			tmp[i] = source[i+1];
+			tmp[i] = source[i + 1];
 		}
 		frameNumber = *(int *)tmp;
 
@@ -73,7 +73,7 @@ public:
 
 		// Set checksum
 		string checksum_tmp;
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < CHECKSUMSIZE; i++) {
 			checksum_tmp.push_back(source[7 + DATASIZE + i]);
 		}
 		checksum = checksum_tmp;
