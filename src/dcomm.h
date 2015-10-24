@@ -26,6 +26,7 @@
 #define DATASIZE 16 /* Maximum data length */
 #define RXQSIZE 8 /* Define receive buffer size */
 #define WINDOWSIZE 5 /* Define window size */
+#define CHECKSUMSIZE 8 /* Define length for checksum */
 
 typedef unsigned char Byte;
 typedef struct QTYPE {
