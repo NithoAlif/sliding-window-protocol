@@ -79,8 +79,9 @@ public:
 		checksum = checksum_tmp;
 
 		// Set result
-		strcpy(result, source);
-
+		for (int i = 0; i < DATASIZE + 15; i++) {
+			result[i] = source[i];
+		}
 	}
 
 	~frame(){
