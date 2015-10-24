@@ -42,14 +42,11 @@ void consumeMessage(){
 		j++;
 		for (int i = 0; i < RXQSIZE; i++) {
 			if (frame_buffer[i].getFrameNumber() != -1){
+				
 				CRC32 crc32;
 				string tmp;
-				for(int j = 0; j < DATASIZE + 6; j++) {
-					tmp.push_back(frame_buffer[i].getResult()[j]);
-				}
-				cout << crc32(tmp) << endl;
-				if (1) {
-					cout << "consume nih!" << endl;
+
+				if (1) { // jika checksum sama
 					cout << frame_buffer[i].getData() << endl;
 					
 					int frameNumber = frame_buffer[i].getFrameNumber();

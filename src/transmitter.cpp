@@ -71,7 +71,7 @@ void sendMessage() {
 
                 printf("Sending frame %d\n", i); 
 
-                cout << frame_vector[i].getChecksum() << endl;
+                cout << frame_vector[i].getFrameNumber() << " " <<frame_vector[i].getChecksum() << endl;
                 if (sendto(s, frame_vector[i].getResult(), 32, 0, (struct sockaddr *)&remaddr, slen)==-1) {
                     perror("sendto");
                     exit(1);
@@ -87,10 +87,10 @@ void sendMessage() {
                     lastWindow++;
                 }
 
-                cout << "First Window: " << firstWindow << endl;
-                cout << "Last Window:" << lastWindow << endl;
+                // cout << "First Window: " << firstWindow << endl;
+                // cout << "Last Window:" << lastWindow << endl;
             }
-            usleep(1);
+            usleep(50);
         }
     }
 }
@@ -104,7 +104,7 @@ void receiveSignal(){
             int frameNumber = stoi(str);
             // ACK diterima
             status_table[frameNumber] = 1;
-            cout << frameNumber << endl;
+            cout << "ACK " << frameNumber << endl;
         }
     }
 }
