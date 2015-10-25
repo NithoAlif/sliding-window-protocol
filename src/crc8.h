@@ -8,11 +8,12 @@
 #include <cstdio>
 #include <string.h>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
 #define nPoly 9 // 8 + 1;
-#define nFrame 184 //(jumlah frame + 1) * 8
+//#define nFrame 184 //(jumlah frame + 1) * 8
 
 class crc8
 {
@@ -40,8 +41,8 @@ public:
 	~crc8();
 
 	/* data */
-	char Frame[nFrame]; // Frame representasi biner
-	char CheckSum[nPoly-1]; // Checksum representasi biner
+	char* Frame; // Frame representasi biner
+	char CheckSum[nPoly]; // Checksum representasi biner
 	string SFrame;
 	string hexCS;
 	char Polynomial[nPoly];

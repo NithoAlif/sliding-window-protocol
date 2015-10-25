@@ -20,7 +20,6 @@ struct sockaddr_in myaddr;
 struct sockaddr_in remaddr;
 socklen_t slen = sizeof(remaddr);
 vector<frame> frame_vector;
-string server = "127.0.0.1";
 int* status_table;
 int s;
 
@@ -57,6 +56,14 @@ void openFile(string filename) {
         frame_vector.push_back(f);
     }
 
+    // Create EOF
+    char data_eof[DATASIZE];
+    memset(data_eof, 0, sizeof(data_eof));
+    data_eof[0] = EOF;
+    frame frame_eof(frame_vector.size(), data_eof);
+    frame_vector.push_back(frame_eof);
+
+    // Initialize status table to -1
     status_table = new int[frame_vector.size()];
     for (int i = 0; i < frame_vector.size(); i++) {
         status_table[i] = -1;
@@ -66,8 +73,8 @@ void openFile(string filename) {
 /*
  * Mengirimkan frame ke receiver menggunakan sliding window protocol
  */
-void sendMessage() {
-    openFile("file.txt");
+void sendMessage(string filename) {
+    openFile(filename);
 
     int firstWindow = 0;
     int lastWindow = WINDOWSIZE;
@@ -137,8 +144,17 @@ void receiveSignal() {
     }
 }
 
-int main() {
-    
+int main(int argc, char const *argv[]) {
+
+    if (argc < 4) {
+        cout << "Usage: ./transmitter <host> <port> <filename>" << endl;
+        return 0;
+    }
+
+    string server(argv[1]);
+    int port = atoi(argv[2]);
+    string filename(argv[3]);
+
     // Create UDP socket
     if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("Cannot create socket. \n");
@@ -159,7 +175,7 @@ int main() {
     // Define remote address whom we want to send messages
     memset((char *) &remaddr, 0, sizeof(remaddr));
     remaddr.sin_family = AF_INET;
-    remaddr.sin_port = htons(2000);
+    remaddr.sin_port = htons(port);
     
     // Convert IPV4 numbers and dots notation into binary form
     if (inet_aton(server.c_str(), &remaddr.sin_addr) == 0) {
@@ -168,7 +184,7 @@ int main() {
     }
 
     // Everything is configured and ready to send the message
-    thread sendMessageThread(sendMessage);
+    thread sendMessageThread(sendMessage, string(filename));
     thread receiveThread(receiveSignal);
     thread timeOutThread(timeOut);
     receiveThread.join();

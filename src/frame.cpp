@@ -3,7 +3,7 @@
 #include <cstring>
 
 #include "dcomm.h"
-#include "crc32.h"
+#include "crc8.h"
 
 using namespace std;
 
@@ -53,7 +53,7 @@ public:
 
 	}
 
-	frame (char source[DATASIZE+15]) {
+	frame (char source[7 + DATASIZE + CHECKSUMSIZE]) {
 		// Set SOH, STX, and EXT
 		soh = source[0];
 		stx = source[5];
@@ -79,7 +79,7 @@ public:
 		checksum = checksum_tmp;
 
 		// Set result
-		for (int i = 0; i < DATASIZE + 15; i++) {
+		for (int i = 0; i < 7 + DATASIZE + CHECKSUMSIZE; i++) {
 			result[i] = source[i];
 		}
 	}
@@ -108,8 +108,8 @@ public:
 		etx = c;
 	}
 	void setChecksum(string s) {
-		CRC32 crc32;
-		checksum = crc32(s);
+		crc8 crc(s);
+		checksum = crc.hexCS;
 	}
 
 	char getSOH() {
@@ -142,5 +142,5 @@ private:
 	char data[DATASIZE];
 	char etx;
 	string checksum;
-	char result[DATASIZE + 15];
+	char result[7 + DATASIZE + CHECKSUMSIZE];
 };
