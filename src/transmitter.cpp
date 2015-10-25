@@ -146,13 +146,14 @@ void receiveSignal() {
 
 int main(int argc, char const *argv[]) {
 
-    if (argc < 3) {
-        cout << "Usage: ./transmitter <host> <filename>" << endl;
+    if (argc < 4) {
+        cout << "Usage: ./transmitter <host> <port> <filename>" << endl;
         return 0;
     }
 
     string server(argv[1]);
-    string filename(argv[2]);
+    int port = atoi(argv[2]);
+    string filename(argv[3]);
 
     // Create UDP socket
     if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -174,7 +175,7 @@ int main(int argc, char const *argv[]) {
     // Define remote address whom we want to send messages
     memset((char *) &remaddr, 0, sizeof(remaddr));
     remaddr.sin_family = AF_INET;
-    remaddr.sin_port = htons(2000);
+    remaddr.sin_port = htons(port);
     
     // Convert IPV4 numbers and dots notation into binary form
     if (inet_aton(server.c_str(), &remaddr.sin_addr) == 0) {
