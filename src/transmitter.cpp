@@ -20,7 +20,6 @@ struct sockaddr_in myaddr;
 struct sockaddr_in remaddr;
 socklen_t slen = sizeof(remaddr);
 vector<frame> frame_vector;
-string server = "127.0.0.1";
 int* status_table;
 int s;
 
@@ -66,8 +65,8 @@ void openFile(string filename) {
 /*
  * Mengirimkan frame ke receiver menggunakan sliding window protocol
  */
-void sendMessage() {
-    openFile("file.txt");
+void sendMessage(string filename) {
+    openFile(filename);
 
     int firstWindow = 0;
     int lastWindow = WINDOWSIZE;
@@ -137,8 +136,16 @@ void receiveSignal() {
     }
 }
 
-int main() {
-    
+int main(int argc, char const *argv[]) {
+
+    if (argc < 3) {
+        cout << "Usage: ./transmitter <host> <filename>" << endl;
+        return 0;
+    }
+
+    string server(argv[1]);
+    string filename(argv[2]);
+
     // Create UDP socket
     if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("Cannot create socket. \n");
@@ -168,7 +175,7 @@ int main() {
     }
 
     // Everything is configured and ready to send the message
-    thread sendMessageThread(sendMessage);
+    thread sendMessageThread(sendMessage, string(filename));
     thread receiveThread(receiveSignal);
     thread timeOutThread(timeOut);
     receiveThread.join();
