@@ -56,6 +56,14 @@ void openFile(string filename) {
         frame_vector.push_back(f);
     }
 
+    // Create EOF
+    char data_eof[DATASIZE];
+    memset(data_eof, 0, sizeof(data_eof));
+    data_eof[0] = EOF;
+    frame frame_eof(frame_vector.size(), data_eof);
+    frame_vector.push_back(frame_eof);
+
+    // Initialize status table to -1
     status_table = new int[frame_vector.size()];
     for (int i = 0; i < frame_vector.size(); i++) {
         status_table[i] = -1;
