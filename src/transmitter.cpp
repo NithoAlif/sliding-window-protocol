@@ -134,12 +134,12 @@ void receiveSignal() {
         char sent_response[5 + CHECKSUMSIZE];
         int recvlen = recvfrom(s, sent_response, sizeof(sent_response), 0, (struct sockaddr *)&remaddr, &slen);
         if (recvlen > 0) {
-            // response r(sent_response)
-            // if (r.getSign == ACK) {
-            //     status_table[r.getFrameNumber()] = 1;
-            // } else {
-            //     status_table[r.getFrameNumber()] = -1;
-            // }
+             response r(sent_response);
+             if (r.getSign() == ACK) {
+                 status_table[r.getFrameNumber()] = 1;
+             } else {
+                 status_table[r.getFrameNumber()] = -1;
+             }
         }
     }
 }

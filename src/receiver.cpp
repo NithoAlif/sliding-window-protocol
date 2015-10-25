@@ -122,13 +122,13 @@ public:
 				int recvlen = recvfrom(socket_, frame_, DATASIZE + 15, 0, (struct sockaddr *)&transmitter_endpoint, &addrlen);
 				if (recvlen > 0){
 					//if (c[0]>32 || c[0]==CR || c[0]==LF || c[0]==Endfile){
-						cout << "Menerima byte ke-" << received << "." << endl;
-						received++;
+						//cout << "Menerima byte ke-" << received << "." << endl;
+						//received++;
 						rxbuf.add(frame_);						
 					//}
 				}	
 			usleep(DELAY * 1000);
-		} while(1);
+		} while(frame_[6] != Endfile);
 		consume_t.join(); // Join the buffer-consumer thread to this thread
 	}
 
@@ -136,10 +136,18 @@ public:
 	static void doConsume(buffer *buf, int *sockfd, sockaddr_in *transmitter){
 		socklen_t addrlen = sizeof(*transmitter);
 		frame frame_;
-		while(1){
+		while(frame_.getData()[0] != Endfile){
 			if (!buf->isEmpty()){ // Consume the buffer data unless empty
 				buf->consume(&frame_);
 				response response_(frame_);
+				if (response_.getResult()[0] == ACK){
+					cout << "ACK" << endl;
+				} else if (response_.getResult()[0] == NAK){
+					cout << "NAK" << endl;
+				} else{
+					cout << "LOL" << endl;
+				}
+				cout <<  frame_.getResult() << endl;
 				if (sendto(*sockfd, frame_.getResult(), CHECKSUMSIZE+5, 0, (struct sockaddr *)transmitter, addrlen) < 0){
 					throw "Error sending XON signal";
 				}
