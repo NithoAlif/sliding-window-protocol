@@ -4,7 +4,7 @@ receiver:
 	g++  -std=c++11 src/receiver.cpp src/crc32.cpp -o bin/receiver -lpthread
 
 transmitter:
-	g++ -std=c++11 src/transmitter.cpp src/crc32.cpp -o bin/transmitter -lpthread
+	g++ -std=c++11 src/transmitter.cpp src/crc8.cpp -o bin/transmitter -lpthread
 
 
 # all: receiver transmitter
