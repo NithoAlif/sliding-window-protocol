@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "dcomm.h"
-#include "frame.cpp"
+#include "response.cpp"
 
 using namespace std;
 
@@ -43,11 +43,10 @@ public:
 	}
 
 	/* CONSUME FIRST ELEMENT IN BUFFER */
-	bool consume(frame *frame_){
+	void consume(frame *frame_){
 		if (!isEmpty()){
 			*frame_ = data[0];
 			data.erase(data.begin());
-			if (*frame_.)
 		} 
 	}
 
@@ -120,7 +119,6 @@ public:
 
 		thread consume_t(doConsume, &rxbuf, &socket_, &transmitter_endpoint); // Create new thread for consuming the buffer data
 		do{
-			//if(sent_xonxoff[0] == XON){ // Receive data while current state is XON
 				int recvlen = recvfrom(socket_, frame_, DATASIZE + 15, 0, (struct sockaddr *)&transmitter_endpoint, &addrlen);
 				if (recvlen > 0){
 					//if (c[0]>32 || c[0]==CR || c[0]==LF || c[0]==Endfile){
@@ -129,14 +127,6 @@ public:
 						rxbuf.add(frame_);						
 					//}
 				}	
-				/*if (rxbuf.getCount()>=UPLIMIT){ // Minimum upper limit has been reached; send the XOFF signal
-					sent_xonxoff[0] = XOFF;
-					cout << "Buffer > minimum upperlimit. Mengirim XOFF." << endl;
-					if (sendto(socket_, sent_xonxoff, 1, 0, (struct sockaddr *)&transmitter_endpoint, addrlen) < 0){
-						throw "Error sending XOFF signal";
-					}
-				}*/ 
-			//}
 			usleep(DELAY * 1000);
 		} while(1);
 		consume_t.join(); // Join the buffer-consumer thread to this thread
@@ -145,26 +135,17 @@ public:
 	/* CONSUME DATA IN BUFFER */
 	static void doConsume(buffer *buf, int *sockfd, sockaddr_in *transmitter){
 		socklen_t addrlen = sizeof(*transmitter);
-		frame frame_ = 0;
-		int consumed = 1;
+		frame frame_;
 		while(1){
 			if (!buf->isEmpty()){ // Consume the buffer data unless empty
 				buf->consume(&frame_);
-				//if (c == Endfile){
-				//	cout << "Data has been successfully received!" << endl;
-				//} else{
-					cout << "Mengkonsumsi byte ke-" << consumed << ": '" << frame_.getData() << "'" << endl;
-					consumed++;					
-				//}
-			}
-
-			/*if (buf->getCount()<LOWLIMIT && sent_xonxoff[0]==XOFF){ // Maximum lower limit has been reached; send the XON signal
-				sent_xonxoff[0] = XON;
-				cout << "Buffer < maximum lowerlimit. Mengirim XON." << endl;
-				if (sendto(*sockfd, sent_xonxoff, 1, 0, (struct sockaddr *)transmitter, addrlen) < 0){
+				response response_(frame_);
+				if (sendto(*sockfd, frame_.getResult(), CHECKSUMSIZE+5, 0, (struct sockaddr *)transmitter, addrlen) < 0){
 					throw "Error sending XON signal";
 				}
-			}*/
+				
+			}
+
 			usleep(DELAY * 3000);
 		}
 	}
