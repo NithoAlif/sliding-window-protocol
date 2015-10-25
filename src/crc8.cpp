@@ -10,10 +10,14 @@ crc8::crc8(string chf) {
 	Error = false;
 	strcpy(Polynomial, "100110001");
 	memset(CheckSum,nPoly-1,0);
-	memset(Frame,nFrame,0);
 	a = chf.length();
-	a *= 8;
+	a = a * 8;
 	SFrame = chf;
+	Frame = new char[a+9];
+	for (int i = 0; i < a+9; ++i)
+	{
+		Frame[i] = '0';
+	}
 	convertFrame();
 	crc();
 	for (int i = a; i < a+nPoly-1; ++i)
@@ -24,7 +28,7 @@ crc8::crc8(string chf) {
 }
 
 crc8::~crc8() {
-	//memset()
+	delete [] Frame;
 }
 
 void crc8::axor() {
@@ -46,6 +50,7 @@ void crc8::crc() {
 	{
 		setElmtCheckSum(i,(getElmtFrame(i)));
 	}
+	int k = nPoly;
 	do {
 		if (getElmtCheckSum(0) == '1')
 		{
@@ -55,8 +60,10 @@ void crc8::crc() {
 		{
 			setElmtCheckSum(j, getElmtCheckSum(j+1));
 		}
-		setElmtCheckSum(j, getElmtFrame(i++));
-	} while (i <= a+nPoly-1);
+		char tmp = Frame[k];
+		CheckSum[j] = tmp;
+		k++;
+	} while (k <= a+nPoly-1);
 }
 
 char crc8::getElmtFrame(int idx){
@@ -95,10 +102,6 @@ void crc8::convertFrame() {
 			ctemp = ctemp / 2;
 			count--;
 		}
-	}
-	for (int i = nFrame; i > nFrame-8; --i)
-	{
-		setElmtFrame(i-1,'0');
 	}
 }
 
