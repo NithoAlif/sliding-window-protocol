@@ -32,6 +32,7 @@ public:
 
 	/* Convert char-binary */
 	void convertFrame();
+	void hexingCheckSum();
 
 	/* Error Detection */
 	bool isError();
@@ -42,6 +43,7 @@ public:
 	char Frame[nFrame]; // Frame representasi biner
 	char CheckSum[nPoly-1]; // Checksum representasi biner
 	string SFrame;
+	string hexCS;
 	char Polynomial[nPoly];
 	int a;
 	bool Error;

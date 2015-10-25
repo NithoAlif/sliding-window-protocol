@@ -12,6 +12,7 @@
 #include <arpa/inet.h>
 
 #include "frame.cpp"
+#include "response.cpp"
 
 using namespace std;
 
@@ -23,6 +24,9 @@ string server = "127.0.0.1";
 int* status_table;
 int s;
 
+/*
+ * Membaca file eksternal kemudian mengubahnya dalam bentuk frame yang siap dikirim
+ */
 void openFile(string filename) {
     ifstream fin;
     fin.open(filename.c_str(), ios::in);
@@ -59,16 +63,18 @@ void openFile(string filename) {
     }
 }
 
+/*
+ * Mengirimkan frame ke receiver menggunakan sliding window protocol
+ */
 void sendMessage() {
-    openFile("/home/husni/Desktop/SlidingWindow/sliding-window-protocol/bin/file.txt");
+    openFile("file.txt");
 
     int firstWindow = 0;
     int lastWindow = WINDOWSIZE;
     int i = firstWindow;
-    while (firstWindow != lastWindow) {
-        for(int i = firstWindow; i < lastWindow; i++) {
+    while (firstWindow != lastWindow + 1) {
+        for (int i = firstWindow; i < lastWindow; i++) {
             if (status_table[i] == -1) {
-
                 printf("Sending frame %d\n", i); 
 
                 cout << frame_vector[i].getFrameNumber() << " " <<frame_vector[i].getChecksum() << endl;
@@ -86,25 +92,47 @@ void sendMessage() {
                 } else {
                     lastWindow++;
                 }
-
-                // cout << "First Window: " << firstWindow << endl;
-                // cout << "Last Window:" << lastWindow << endl;
             }
             usleep(50);
         }
     }
 }
 
-void receiveSignal(){
+
+/*
+ * Mengubah status table dari frame yang sudah dikirim namun belum mendapatkan ACK
+ * Keterangan: status_table bisa bernilai 1, 0, -1
+ * 1  : frame sudah mendapatkan ack
+ * 0  : frame sudah dikirim namun belum mendapatkan ack
+ * -1 : frame belum dikirim atau jika frame mendapatkan nak 
+ */
+void timeOut() {
+    while(1) {
+        sleep(TIMEOUT);
+        for (int i = 0; i < frame_vector.size(); i++) {
+            if (status_table[i] == 0) {
+                status_table[i] = -1;
+            }
+        }
+    }
+}
+
+/*
+ * Menerima sinyal yang dikirim oleh receiver.
+ * Jika sinyal ACK, ubah status table frame number dari respon tersebut ke 1
+ * Jika sinyal NAK, ubah status table frame number dari respon tersebut ke -1 
+ */
+void receiveSignal() {
     for(;;){
-        char c[10];
-        int recvlen = recvfrom(s, c, 10, 0, (struct sockaddr *)&remaddr, &slen);
+        char sent_response[5 + CHECKSUMSIZE];
+        int recvlen = recvfrom(s, sent_response, sizeof(sent_response), 0, (struct sockaddr *)&remaddr, &slen);
         if (recvlen > 0) {
-            string str(c);
-            int frameNumber = stoi(str);
-            // ACK diterima
-            status_table[frameNumber] = 1;
-            cout << "ACK " << frameNumber << endl;
+            // response r(sent_response)
+            // if (r.getSign == ACK) {
+            //     status_table[r.getFrameNumber()] = 1;
+            // } else {
+            //     status_table[r.getFrameNumber()] = -1;
+            // }
         }
     }
 }
@@ -142,6 +170,7 @@ int main() {
     // Everything is configured and ready to send the message
     thread sendMessageThread(sendMessage);
     thread receiveThread(receiveSignal);
+    thread timeOutThread(timeOut);
     receiveThread.join();
 
     return 0;
