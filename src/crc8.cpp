@@ -20,6 +20,7 @@ crc8::crc8(string chf) {
 	{
 		setElmtFrame(i, getElmtCheckSum(i-a));
 	}
+	hexingCheckSum();
 }
 
 crc8::~crc8() {
@@ -98,6 +99,40 @@ void crc8::convertFrame() {
 	for (int i = nFrame; i > nFrame-8; --i)
 	{
 		setElmtFrame(i-1,'0');
+	}
+}
+
+void crc8::hexingCheckSum() {
+	int temp = 0; int nPow = 0; char res;
+	for (int i = nPoly-2; i >= 0; --i)
+	{
+		int power = 1;
+		for (int j = 0; j < nPow; ++j)
+		{
+			power *= 2;
+		}
+		nPow = (nPow + 1) % 4;
+		temp += (CheckSum[i] - '0') * power;
+		if (nPow == 0)
+		{
+			if (temp < 10)
+			{
+				res = temp + '0';
+			}
+			else {
+				switch (temp) {
+					case 10 : res = 'A'; break;
+					case 11 : res = 'B'; break;
+					case 12 : res = 'C'; break;
+					case 13 : res = 'D'; break;
+					case 14 : res = 'E'; break;
+					case 15 : res = 'F'; break;
+					default : break;
+				}
+			}
+			temp = 0;
+			hexCS = res + hexCS;
+		}
 	}
 }
 
