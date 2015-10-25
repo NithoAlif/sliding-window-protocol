@@ -7,7 +7,10 @@
 using namespace std;
 
 crc8::crc8(string chf) {
-	strcpy(Polynomial, "11010101");
+	Error = false;
+	strcpy(Polynomial, "100110001");
+	memset(CheckSum,nPoly-1,0);
+	memset(Frame,nFrame,0);
 	a = chf.length();
 	a *= 8;
 	SFrame = chf;
@@ -19,7 +22,9 @@ crc8::crc8(string chf) {
 	}
 }
 
-crc8::~crc8() {}
+crc8::~crc8() {
+	//memset()
+}
 
 void crc8::axor() {
 	for (int i = 1; i < nPoly; ++i)
@@ -49,8 +54,7 @@ void crc8::crc() {
 		{
 			setElmtCheckSum(j, getElmtCheckSum(j+1));
 		}
-		setElmtCheckSum(j, getElmtFrame(i));
-		i++;
+		setElmtCheckSum(j, getElmtFrame(i++));
 	} while (i <= a+nPoly-1);
 }
 
@@ -91,8 +95,12 @@ void crc8::convertFrame() {
 			count--;
 		}
 	}
+	for (int i = nFrame; i > nFrame-8; --i)
+	{
+		setElmtFrame(i-1,'0');
+	}
 }
 
 void isError() {
-	
+
 }
