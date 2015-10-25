@@ -11,13 +11,14 @@
 
 using namespace std;
 
-#define nPoly 8
+#define nPoly 9 // 8 + 1;
 #define nFrame 184 //(jumlah frame + 1) * 8
 
 class crc8
 {
 public:
 	crc8(string chf);
+	//crc8(string chf, char chsm[]);
 	void axor();
 	void crc();
 	
@@ -39,10 +40,11 @@ public:
 
 	/* data */
 	char Frame[nFrame]; // Frame representasi biner
-	char CheckSum[nPoly]; // Checksum representasi biner
+	char CheckSum[nPoly-1]; // Checksum representasi biner
 	string SFrame;
 	char Polynomial[nPoly];
 	int a;
+	bool Error;
 };
 
 #endif
