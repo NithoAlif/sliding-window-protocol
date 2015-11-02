@@ -9,14 +9,25 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <queue>
 #include "dcomm.h"
 #include "response.cpp"
+
 
 using namespace std;
 
 #define DELAY 500 // Delay to adjust speed of consuming buffer, in milliseconds
 #define UPLIMIT 6 // Define minimum upper limit
 #define LOWLIMIT 2 // Define maximum lower limit
+
+struct frameComparator
+{
+  bool operator()(frame& a, frame& b)
+  {
+    return a.getFrameNumber() > b.getFrameNumber();
+  }
+};
+
 
 class buffer{
 public:
@@ -38,7 +49,8 @@ public:
 		/* Add frame to buffer */
 		frame frame_(tx_result);
 		if (!isFull()){
-			data.push_back(frame_);		
+			data.push_back(frame_);
+			data_all.push(frame_);
 		}
 	}
 
@@ -65,8 +77,13 @@ public:
 		return data.empty();
 	}
 
+	priority_queue<frame, vector<frame>, frameComparator> getDataAll() {
+		return data_all;
+	}
+
 private:
 	vector<frame> data; // Buffer memory region
+	priority_queue<frame, vector<frame>, frameComparator> data_all;
 	int maxsize; // Maximum buffer size
 	//Byte *data; 
 };
@@ -119,14 +136,14 @@ public:
 
 		thread consume_t(doConsume, &rxbuf, &socket_, &transmitter_endpoint); // Create new thread for consuming the buffer data
 		do{
-				int recvlen = recvfrom(socket_, frame_, DATASIZE + 15, 0, (struct sockaddr *)&transmitter_endpoint, &addrlen);
-				if (recvlen > 0){
-					//if (c[0]>32 || c[0]==CR || c[0]==LF || c[0]==Endfile){
-						//cout << "Menerima byte ke-" << received << "." << endl;
-						//received++;
-						rxbuf.add(frame_);						
-					//}
-				}	
+			int recvlen = recvfrom(socket_, frame_, DATASIZE + 15, 0, (struct sockaddr *)&transmitter_endpoint, &addrlen);
+			if (recvlen > 0){
+				//if (c[0]>32 || c[0]==CR || c[0]==LF || c[0]==Endfile){
+					//cout << "Menerima byte ke-" << received << "." << endl;
+					//received++;
+					rxbuf.add(frame_);						
+				//}
+			}	
 			usleep(DELAY * 1000);
 		} while(frame_[6] != Endfile);
 		consume_t.join(); // Join the buffer-consumer thread to this thread
@@ -147,15 +164,23 @@ public:
 				} else{
 					cout << "LOL" << endl;
 				}
-				cout <<  frame_.getResult() << endl;
-				if (sendto(*sockfd, frame_.getResult(), CHECKSUMSIZE+5, 0, (struct sockaddr *)transmitter, addrlen) < 0){
-					throw "Error sending XON signal";
+				cout << "Receiving data: " << frame_.getData() << endl;
+				if (sendto(*sockfd, response_.getResult(), CHECKSUMSIZE+5, 0, (struct sockaddr *)transmitter, addrlen) < 0){
+					throw "Error sending signal";
 				}
 				
 			}
-
 			usleep(DELAY * 3000);
 		}
+		priority_queue<frame, vector<frame>, frameComparator> data_all(buf->getDataAll());
+
+		// Print data seara terurut
+		while(!data_all.empty()) {
+			frame x = data_all.top();
+			cout << x.getData();
+			data_all.pop();
+		}
+		cout << endl;
 	}
 
 	/* GETTER RECEIVER BOUND ADDRESS */

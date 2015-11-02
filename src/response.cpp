@@ -1,7 +1,7 @@
 #include <iostream>
 #include "dcomm.h"
 #include "frame.cpp"
-#include "crc32.h"
+#include "crc8.h"
 
 using namespace std;
 
@@ -20,7 +20,7 @@ public:
 	}
 
 	response (char source[5 + CHECKSUMSIZE]) {
-		// Set SOH, STX, and EXT
+		// Set sign
 		sign = source[0];
 		
 		// Set frameNumber

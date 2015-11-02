@@ -22,6 +22,7 @@ socklen_t slen = sizeof(remaddr);
 vector<frame> frame_vector;
 int* status_table;
 int s;
+bool finish = false;
 
 /*
  * Membaca file eksternal kemudian mengubahnya dalam bentuk frame yang siap dikirim
@@ -59,7 +60,7 @@ void openFile(string filename) {
     // Create EOF
     char data_eof[DATASIZE];
     memset(data_eof, 0, sizeof(data_eof));
-    data_eof[0] = EOF;
+    data_eof[0] = Endfile;
     frame frame_eof(frame_vector.size(), data_eof);
     frame_vector.push_back(frame_eof);
 
@@ -79,7 +80,7 @@ void sendMessage(string filename) {
     int firstWindow = 0;
     int lastWindow = WINDOWSIZE;
     int i = firstWindow;
-    while (firstWindow != lastWindow + 1) {
+    while (firstWindow != lastWindow) {
         for (int i = firstWindow; i < lastWindow; i++) {
             if (status_table[i] == -1) {
                 printf("Sending frame %d\n", i); 
@@ -100,6 +101,7 @@ void sendMessage(string filename) {
                     lastWindow++;
                 }
             }
+
             usleep(50);
         }
     }
@@ -114,7 +116,7 @@ void sendMessage(string filename) {
  * -1 : frame belum dikirim atau jika frame mendapatkan nak 
  */
 void timeOut() {
-    while(1) {
+    while(!finish) {
         sleep(TIMEOUT);
         for (int i = 0; i < frame_vector.size(); i++) {
             if (status_table[i] == 0) {
@@ -130,16 +132,22 @@ void timeOut() {
  * Jika sinyal NAK, ubah status table frame number dari respon tersebut ke -1 
  */
 void receiveSignal() {
-    for(;;){
+    while(!finish){
         char sent_response[5 + CHECKSUMSIZE];
-        int recvlen = recvfrom(s, sent_response, sizeof(sent_response), 0, (struct sockaddr *)&remaddr, &slen);
-        if (recvlen > 0) {
-             response r(sent_response);
-             if (r.getSign() == ACK) {
-                 status_table[r.getFrameNumber()] = 1;
-             } else {
-                 status_table[r.getFrameNumber()] = -1;
-             }
+        if (!finish) {
+            int recvlen = recvfrom(s, sent_response, sizeof(sent_response), 0, (struct sockaddr *)&remaddr, &slen);
+            if (recvlen > 0) {
+                 response r(sent_response);
+                 if (r.getResult()[0] == ACK) {
+                     status_table[r.getFrameNumber()] = 1;
+                     cout << "ACK" << endl;
+                 } else if (r.getResult()[0] == NAK) {
+                     status_table[r.getFrameNumber()] = -1;
+                     cout << "NAK" << endl;
+                 } else {
+                    cout << "LOL" << endl;
+                 }
+            }
         }
     }
 }
@@ -187,7 +195,9 @@ int main(int argc, char const *argv[]) {
     thread sendMessageThread(sendMessage, string(filename));
     thread receiveThread(receiveSignal);
     thread timeOutThread(timeOut);
+    sendMessageThread.join();
     receiveThread.join();
+    timeOutThread.join();
 
     return 0;
 }

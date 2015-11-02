@@ -27,7 +27,7 @@
 #define RXQSIZE 8 /* Define receive buffer size */
 #define WINDOWSIZE 5 /* Define window size */
 #define CHECKSUMSIZE 8 /* Define length for checksum */
-#define TIMEOUT 1 /* Define timeout for sending the message in seconds */
+#define TIMEOUT 15 /* Define timeout for sending the message in seconds */
 
 typedef unsigned char Byte;
 typedef struct QTYPE {
